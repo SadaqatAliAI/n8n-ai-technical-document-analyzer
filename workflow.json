@@ -1,0 +1,285 @@
+{
+  "name": "AI Technical Document Analyzer",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "AI Research Paper Analyzer",
+        "formDescription": "Upload a technical research paper in PDF format. The workflow will extract the text, generate a concise summary, create starter code based on the paper, and save the results to Google Docs.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Upload File:",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Document Title:",
+              "placeholder": "e.g., Attention Is All You Need"
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "Generate Summary & Code",
+          "respondWithOptions": {
+            "values": {
+              "formSubmittedText": "Your File has been submitted successfully. \n\n The workflow is now:\n\n • Extracting the PDF text \n • Generating a summary \n • Creating starter code\n • Saving everything to Google Docs  \n\nThe process may take a few moments depending on the size of the paper."
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -240,
+        -32
+      ],
+      "id": "8993c921-ea9e-4a40-a0aa-6a614e238300",
+      "name": "On form submission",
+      "webhookId": "82ba6f8c-7fb0-4b02-8243-a85ebda4dac2"
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "Upload_File_",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -32,
+        -32
+      ],
+      "id": "8ae77bb3-d66b-4367-b1bf-ec332dab3fc0",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        -160
+      ],
+      "id": "368e0a0a-82cd-4768-91bd-096a783396f3",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following technical research paper.\n\nGenerate beginner-friendly starter code that reflects the architecture, methodology, and implementation ideas described in the paper.\n\nIf the paper specifies a programming language, use that language. Otherwise, choose the most appropriate language based on the research domain (for example, Python for AI/ML papers).\n\nDo not attempt to fully implement the research. Instead, create a clean project skeleton with comments and TODO placeholders where additional implementation is required.\n\nResearch Paper:\n\n{{ $json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert software engineer, AI researcher, and programming instructor.\n\nYour task is to analyze the provided research paper and generate starter code that helps a developer begin implementing the paper's proposed solution.\n\nIMPORTANT OUTPUT RULES:\n\n- Output plain text only.\n- Do NOT use Markdown.\n- Do NOT use HTML.\n- Do NOT use Markdown code fences such as ``` or ~~~.\n- Do NOT use tables.\n- Do NOT use emojis.\n- Do NOT use Markdown headings (#, ##, ###).\n- Use only plain text, blank lines, indentation, and standard punctuation.\n- Do not invent algorithms or implementation details that are not reasonably inferred from the paper.\n- If the paper does not provide enough implementation details, clearly state the assumptions you make.\n- Prioritize correctness and readability over completeness.\n\nGenerate the output in the following format:\n\nSTARTER CODE GUIDE\n\nPaper Title:\n<Title if available, otherwise \"Not Available\">\n\nRecommended Programming Language:\n<Most appropriate language>\n\nRecommended Frameworks/Libraries:\n<List the most relevant frameworks and libraries>\n\nImplementation Overview:\nBriefly explain how the implementation should be structured.\n\nProject Structure:\nDisplay a suggested folder structure using plain text.\n\nRequired Dependencies:\nList the required packages or libraries.\n\nStarter Code:\n\nProvide clean, well-commented starter code that establishes the basic project structure. Include:\n- imports\n- configuration\n- class/function definitions\n- placeholders (TODO comments) where implementation details from the paper are missing\n\nImplementation Notes:\nExplain what each major section of the code is responsible for.\n\nAssumptions:\nClearly list any assumptions made because the paper omitted implementation details.\n\nNext Steps:\nProvide a numbered list describing how a developer should continue implementing the complete system.\n\nThe output should be suitable for direct insertion into Google Docs while allowing the code to be copied and pasted into a development environment."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        272,
+        160
+      ],
+      "id": "5807a7dc-cd02-45d6-9111-9de16e279095",
+      "name": "Starter Code Gen"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        368
+      ],
+      "id": "60145580-de84-4b5d-ac8d-37e68c32b667",
+      "name": "OpenAI Chat Model1",
+      "credentials": {
+        "openAiApi": {
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the following research paper and generate a structured summary according to the required format.\n\nResearch Paper:\n\n{{ $json.text }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are an expert technical research analyst specializing in computer science, artificial intelligence, software engineering, and related technical fields.\n\nYour task is to analyze the extracted text from a research paper and produce a clear, accurate, and well-structured summary.\n\nIMPORTANT OUTPUT RULES:\n\n- Output plain text only.\n- Do NOT use Markdown.\n- Do NOT use HTML.\n- Do NOT use tables.\n- Do NOT use code blocks.\n- Do NOT use bullets with Markdown symbols such as #, ##, ###, *, -, or >.\n- Do NOT use emojis.\n- Use only normal text, blank lines, numbers, letters, and standard punctuation.\n- Write in professional English.\n- If information is missing, do not invent details.\n\nFormat the response exactly like this:\n\nRESEARCH PAPER SUMMARY\n\nTitle:\n<Paper title if available, otherwise write \"Not Available\">\n\nAuthors:\n<List authors if available, otherwise write \"Not Available\">\n\nResearch Domain:\n<Primary research area>\n\nAbstract Summary:\nWrite a concise summary of the paper in one well-written paragraph.\n\nProblem Statement:\nExplain the problem the paper aims to solve.\n\nProposed Solution:\nDescribe the solution or approach introduced by the paper.\n\nMethodology:\nExplain the methodology, architecture, algorithm, or workflow used.\n\nKey Contributions:\n1. First contribution\n2. Second contribution\n3. Third contribution\n(Include as many as applicable.)\n\nTechnologies and Concepts:\nList the important technologies, programming languages, frameworks, algorithms, models, or concepts discussed.\n\nResults and Findings:\nSummarize the important experimental results or findings.\n\nLimitations:\nMention any limitations discussed in the paper. If none are mentioned, write \"Not explicitly stated.\"\n\nFuture Work:\nSummarize any future work proposed by the authors. If none is mentioned, write \"Not explicitly stated.\"\n\nConclusion:\nWrite a concise concluding paragraph.\n\nThe output should be readable as a professional document when directly inserted into Google Docs without requiring any formatting or editing."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        272,
+        -320
+      ],
+      "id": "f23a041d-b8ea-406a-908e-682c332518e0",
+      "name": "Paper Summarizer"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        768,
+        -80
+      ],
+      "id": "675545ca-e924-406c-950f-48fcbe6eca27",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "https://docs.google.com/document/d/YOUR_GOOGLE_DOC_ID/edit?tab=t.0",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{ $json.text }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1040,
+        -80
+      ],
+      "id": "64297127-1114-44c6-a5b3-75b1efc50759",
+      "name": "Update a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "name": "Google Docs OAuth2 API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Paper Summarizer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Starter Code Gen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Paper Summarizer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Starter Code Gen",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Paper Summarizer": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Starter Code Gen": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Update a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "tags": []
+}
